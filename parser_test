@@ -1,0 +1,3 @@
+bool test_func(int a, bool b=false, char c='\n') {
+    'a'
+}
