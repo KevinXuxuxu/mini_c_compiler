@@ -1,8 +1,5 @@
 from collections import namedtuple
-
-FuncDef = namedtuple('FuncDef', ['name', 'type', 'args', 'body'])
-Literal = namedtuple('Literal', ['type', 'value'])
-Variable = namedtuple('Variable', ['name', 'type', 'default'])
+from tree import *
 
 class ParseException(Exception):
     pass
