@@ -34,12 +34,9 @@ class Tree:
                 s += "{}{}:\n".format(self.unit * i, field)
                 for v in value:
                     if isinstance(v, Tree):
-                        s += "{}- {}".format(
-                            self.unit * (i),
-                            v.to_str(i+1)
-                        )
+                        s += "{}- {}".format(self.unit * i, v.to_str(i+1))
                     else:
-                        s += "{}- {}\n".format(self.unit * (i), unescape(v))
+                        s += "{}- {}\n".format(self.unit * i, unescape(v))
             else:
                 s += "{}{}: {}\n".format(self.unit * i, field, unescape(value))
         return s
