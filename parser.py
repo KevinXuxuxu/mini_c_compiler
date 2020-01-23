@@ -51,9 +51,11 @@ class Parser:
         if self.peek().type == 'ASSIGN_OP' and self.peek().value == '=':
             self.consume('ASSIGN_OP')
             default = self.parse_literal()
-            assert default.type == _type, "Expecting type {} but got {}".format(_type, default.type)
+            self.match_type(_type, default.type)
         return Variable(name, _type, default)
 
+    def match_type(self, type1, type2):
+        assert type1 == type2, "Expecting type {} but got {}".format(type1, type2)
     
     def parse_expr(self):
         return self.parse_literal()
