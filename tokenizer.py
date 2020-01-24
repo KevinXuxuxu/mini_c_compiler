@@ -12,23 +12,26 @@ class Token:
     def __str__(self):
         return "[{}: '{}']".format(type(self).__name__, self.value)
 
-class STRING(Token):
+class LITERAL(Token):
+    pass
+
+class STRING(LITERAL):
     reg = r'\"[^\n]*?\"'
     token_type = 'STRING'
 
-class CHARACTER(Token):
+class CHARACTER(LITERAL):
     reg = r'\'\\0\'|\'\\\\\'|\'\\n\'|\'\\t\'|\'[^\n\\]?\''
     token_type = 'CHARACTER'
 
-class NUMERIC(Token):
+class NUMERIC(LITERAL):
     reg = r'\b[0-9]+\b'
     token_type = 'NUMERIC'
 
-class BOOLEAN(Token):
+class BOOLEAN(LITERAL):
     reg = r'\btrue\b|\bfalse\b'
     token_type = 'BOOLEAN'
 
-class NULL(Token):
+class NULL(LITERAL):
     reg = r'\bNULL\b'
     token_type = 'NULL'
 
@@ -66,14 +69,14 @@ class OP(Token):
     _type = None
 
     def get_prec(self):
-        if not self.prec:
+        if self.prec is None:
             raise ParseException(
                 "Trying to get precedence of operator '{}' before generation".format(
                     self.value))
         return self.prec
 
     def get_type(self):
-        if not self._type:
+        if self._type is None:
             raise ParseException(
                 "Trying to get type of operator '{}' before generation".format(
                     self.value))
@@ -84,8 +87,12 @@ class OP(Token):
             if self.value in ops:
                 self.prec = prec
                 self._type = _type
-                break
+                return self
         raise ParseException("Cannot generate info of operator '{}'".format(self.value))
+
+# fake operator for expression parse
+class HASH_OP(OP):
+    pass
 
 class O_PARAN(OP):
     reg = r'\('

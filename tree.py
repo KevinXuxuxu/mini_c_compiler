@@ -53,3 +53,9 @@ class Literal(namedtuple('Literal', ['type', 'value']), Tree):
 
 class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
     pass
+
+class UnaryOp(namedtuple('UnaryOp', ['op', 'child']), Tree):
+    pass
+
+class BinaryOp(namedtuple('BinaryOp', ['op', 'right', 'left']), Tree):
+    pass
