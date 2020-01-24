@@ -57,8 +57,8 @@ class Parser:
         top = self.peek()
         if top.type == 'NUMERIC':
             return Literal('int', int(self.consume('NUMERIC').value))
-        if top.type == 'STRING_LITERAL':
-            return Literal('string', eval(self.consume('STRING_LITERAL').value))
+        if top.type == 'STRING':
+            return Literal('string', eval(self.consume('STRING').value))
         if top.type == 'CHARACTER':
             return Literal('char', eval(self.consume('CHARACTER').value))
         if top.type == 'BOOLEAN':

@@ -15,7 +15,7 @@ class Tokenizer:
     # TODO: include, macros
 
     token_list = [
-        ('STRING_LITERAL', r'\"[^\n]*?\"'),
+        ('STRING', r'\"[^\n]*?\"'),
         ('CHARACTER', r'\'\\0\'|\'\\\\\'|\'\\n\'|\'\\t\'|\'[^\n\\]?\''),
         ('NUMERIC', r'\b[0-9]+\b'),
         ('BOOLEAN', r'\btrue\b|\bfalse\b'),
