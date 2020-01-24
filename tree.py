@@ -51,5 +51,5 @@ class FuncDef(namedtuple('FuncDef', ['name', 'type', 'args', 'body']), Tree):
 class Literal(namedtuple('Literal', ['type', 'value']), Tree):
     pass
 
-class Variable(namedtuple('Variable', ['name', 'type', 'default']), Tree):
+class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
     pass

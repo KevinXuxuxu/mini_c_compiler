@@ -50,21 +50,21 @@ class Parser:
         args = []
         self.consume('O_PARAN')
         if self.peek().type == 'BASE_TYPE':
-            args.append(self.parse_var())
+            args.append(self.parse_var_def())
             while self.peek().type == 'COMMA':
                 self.consume('COMMA')
-                args.append(self.parse_var())
+                args.append(self.parse_var_def())
         self.consume('C_PARAN')
         return args
     
-    def parse_var(self):
+    def parse_var_def(self):
         _type = self.consume('BASE_TYPE').value
         name = self.consume('NAME').value
         default = None
         if self.peek().type == 'ASSIGN_OP' and self.peek().value == '=':
             self.consume('ASSIGN_OP')
             default = self.parse_literal()
-        return Variable(name, _type, default)
+        return VarDef(name, _type, default)
     
     def parse_expr(self):
         return self.parse_literal()
