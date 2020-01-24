@@ -1,8 +1,6 @@
 import re
 from collections import namedtuple
-
-class TokenizeFailedException(Exception):
-    pass
+from exceptions import *
 
 Token = namedtuple('Token', ['type', 'value'])
 

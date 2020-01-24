@@ -1,11 +1,6 @@
 from collections import namedtuple
 from tree import *
-
-class ParseException(Exception):
-    pass
-
-class UnexpectedEndOfTokenListException(ParseException):
-    pass
+from exceptions import *
 
 class Parser:
     
