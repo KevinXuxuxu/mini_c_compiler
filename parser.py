@@ -79,4 +79,6 @@ class Parser:
             return Literal('char', eval(self.consume('CHARACTER').value))
         if top.type == 'BOOLEAN':
             return Literal('bool', self.consume('BOOLEAN').value == 'true')
+        if top.type == 'NULL':
+            return Literal('null', None)
         raise ParseException("Unrecognized literal {} of token type {}".format(top.value, top.type))

@@ -19,6 +19,7 @@ class Tokenizer:
         ('CHARACTER', r'\'\\0\'|\'\\\\\'|\'\\n\'|\'\\t\'|\'[^\n\\]?\''),
         ('NUMERIC', r'\b[0-9]+\b'),
         ('BOOLEAN', r'\btrue\b|\bfalse\b'),
+        ('NULL', r'\bNULL\b'),
         ('BASE_TYPE', r'\bint\b|\bchar\b|\bbool\b|\bvoid\b'),
         ('RETURN', r'\breturn\b'),
         ('O_PARAN', r'\('),
