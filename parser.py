@@ -4,12 +4,24 @@ from tree import *
 class ParseException(Exception):
     pass
 
+class UnexpectedEndOfTokenListException(ParseException):
+    pass
+
 class Parser:
     
     def parse(self, tokens):
         self.tokens = tokens
-        tree = self.parse_func_def()
+        tree = self.parse_root()
         return tree
+    
+    def parse_root(self):
+        functions = []
+        try:
+            while self.peek().type == 'BASE_TYPE':
+                functions.append(self.parse_func_def())
+        except UnexpectedEndOfTokenListException:
+            pass
+        return Root(functions)
     
     def parse_func_def(self):
         _type = self.consume('BASE_TYPE').value
@@ -28,7 +40,11 @@ class Parser:
                 expected_type, self.tokens[0].type))
     
     def peek(self):
-        return self.tokens[0]
+        try:
+            return self.tokens[0]
+        except IndexError:
+            # TODO: add expecting token type to exception message
+            raise UnexpectedEndOfTokenListException()
     
     def parse_args(self):
         args = []

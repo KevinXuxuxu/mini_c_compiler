@@ -42,6 +42,9 @@ class Tree:
         return s
 
 
+class Root(namedtuple('Root', ['functions']), Tree):
+    pass
+
 class FuncDef(namedtuple('FuncDef', ['name', 'type', 'args', 'body']), Tree):
     pass
 
