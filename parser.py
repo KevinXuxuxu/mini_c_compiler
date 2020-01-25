@@ -97,9 +97,6 @@ class Parser:
                 break
         while not isinstance(stack[-1], HASH_OP):
             postfix.append(stack.pop())
-        # print('--------')
-        # for t in postfix:
-        #     print(t)
         return postfix
     
     def to_operand(self, t):
