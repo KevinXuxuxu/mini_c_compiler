@@ -44,13 +44,13 @@ class Parser:
     
     def parse_args(self):
         args = []
-        self.consume(O_PARAN)
+        self.consume(O_PAREN)
         if self.next_token_is(BASE_TYPE):
             args.append(self.parse_var_def())
             while self.next_token_is(COMMA):
                 self.consume(COMMA)
                 args.append(self.parse_var_def())
-        self.consume(C_PARAN)
+        self.consume(C_PAREN)
         return args
     
     def parse_var_def(self):
@@ -71,15 +71,15 @@ class Parser:
                 t = self.consume()
                 postfix.append(t)
                 prev = t
-            elif self.next_token_is(O_PARAN):
+            elif self.next_token_is(O_PAREN):
                 t = self.consume()
                 t.gen(prev)
                 stack.append(t)
                 prev = t
-            elif self.next_token_is(C_PARAN):
-                while not isinstance(stack[-1], O_PARAN):
+            elif self.next_token_is(C_PAREN):
+                while not isinstance(stack[-1], O_PAREN):
                     postfix.append(stack.pop())
-                stack.pop()  # pop out O_PARAN
+                stack.pop()  # pop out O_PAREN
                 prev = self.consume()
             elif self.next_token_is(OP):
                 op = self.consume()

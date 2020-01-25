@@ -10,7 +10,7 @@ class Token:
         self.value = value
     
     def __str__(self):
-        return "[{}: '{}']".format(type(self).__name__, self.value)
+        return "[{}]('{}')".format(type(self).__name__, self.value)
 
 class LITERAL(Token):
     pass
@@ -68,6 +68,9 @@ class OP(Token):
     prec = None
     _type = None
 
+    def __str__(self):
+        return "[{}]({}, {}, {})".format(type(self).__name__, self.value, self.prec, self._type)
+
     def get_prec(self):
         if self.prec is None:
             raise ParseException(
@@ -94,13 +97,13 @@ class OP(Token):
 class HASH_OP(OP):
     pass
 
-class O_PARAN(OP):
+class O_PAREN(OP):
     reg = r'\('
-    token_type = 'O_PARAN'
+    token_type = 'O_PAREN'
 
-class C_PARAN(OP):
+class C_PAREN(OP):
     reg = r'\)'
-    token_type = 'C_PARAN'
+    token_type = 'C_PAREN'
 
 class O_BRAC(Token):
     reg = r'{'
@@ -138,12 +141,12 @@ class CREMENT_OP(OP):
     #         but we'll leave that to typecheck)
     #     Any binary operator (as left unary operator): +, *, ...
     #     Any left unary operator except ++, -- (as left unary operator): !, ...
-    #     O_PARAN (as left unary operator)
+    #     O_PAREN (as left unary operator)
     # Cannot be after:
     #     Any right unary operator
     #         (which seems to be nothing but ++ and -- themselves)
     #     ++, --
-    #     C_PARAN
+    #     C_PAREN
     #         (only case that it might work is redundent parentheses over variable,
     #         which will be ignored for now)
 
@@ -197,9 +200,11 @@ class PLUS_MINUS_OP(ARITH_OP):
     #   after C_RARAN
     # Left-unary operator:
     #   after any operator
-    #   after O_PARAN 
+    #   after O_PAREN 
     def gen(self, prev):
-        if isinstance(prev, OP) and not isinstance(prev, C_PARAN):
+        if isinstance(prev, OP) and not (
+                isinstance(prev, C_PAREN) or 
+                prev.get_type() == 'RU'):
             self.prec = 19
             self._type = 'LU'
         else:
@@ -236,8 +241,8 @@ class Tokenizer:
         NULL,
         BASE_TYPE,
         RETURN,
-        O_PARAN,
-        C_PARAN,
+        O_PAREN,
+        C_PAREN,
         O_BRAC,
         C_BRAC,
         O_SQ_BRAC,
