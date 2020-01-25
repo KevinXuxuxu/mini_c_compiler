@@ -92,6 +92,7 @@ class Parser:
                     while op_prec <= stack[-1].get_prec():
                         postfix.append(stack.pop())
                 stack.append(op)
+                prev = op
             else:
                 break
         while not isinstance(stack[-1], HASH_OP):
