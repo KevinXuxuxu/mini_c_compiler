@@ -1,3 +1,13 @@
-bool test_func(int a=NULL, bool b=false, char c='\n') {
+/* bool test_func(int a=NULL, bool b=false, char c='\n') {
     1+!(++a--+(++b))*5 + call1(12, a*(c+call2(!b)), r) * 3
+}
+*/
+
+bool test_func() {
+    a = 12*3 + sqrt(a * (b+c));
+    int q = p++;
+    int plus(int a, int b) {
+        a+b;
+    }
+    call(12, a=45%++b);
 }
