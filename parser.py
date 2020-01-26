@@ -121,8 +121,6 @@ class Parser:
         return t.value
     
     def build_expr(self, postfix):
-        for t in postfix:
-            print(t)
         stack = []
         for t in postfix:
             if isinstance(t, LITERAL) or isinstance(t, NAME):
