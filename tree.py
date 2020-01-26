@@ -59,3 +59,9 @@ class UnaryOp(namedtuple('UnaryOp', ['op', 'child']), Tree):
 
 class BinaryOp(namedtuple('BinaryOp', ['op', 'right', 'left']), Tree):
     pass
+
+class FuncCall(namedtuple('FuncCall', ['name', 'params']), Tree):
+    pass
+
+class Param(namedtuple('Param', ['name', 'expr']), Tree):
+    pass
