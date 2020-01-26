@@ -29,6 +29,7 @@ class Parser:
         return FuncDef(name, _type, args, body)
     
     def consume(self, expected_type=None):
+        self.parse_comment()
         if not expected_type or isinstance(self.tokens[0], expected_type):
             return self.tokens.pop(0)
         raise ParseException(
@@ -37,6 +38,7 @@ class Parser:
     
     def match_tokens(self, *argv):
         try:
+            self.parse_comment()
             for i, _type in enumerate(argv):
                 if not isinstance(self.tokens[i], _type):
                     return False
@@ -187,3 +189,7 @@ class Parser:
             return Literal('null', None)
         raise ParseException("Unrecognized literal {} of token type {}".format(
             self.tokens[0].value, type(self.tokens[0])))
+
+    def parse_comment(self):
+        while isinstance(self.tokens[0], COMMENT):
+            self.tokens.pop(0)

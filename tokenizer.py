@@ -121,11 +121,14 @@ class C_SQ_BRAC(Token):
     reg = r'\]'
     token_type = 'C_SQ_BRAC'
 
-class S_COMMENT(Token):
+class COMMENT(Token):
+    pass
+
+class S_COMMENT(COMMENT):
     reg = r'\/\/[^\n]*'
     token_type = 'S_COMMENT'
 
-class M_COMMENT(Token):
+class M_COMMENT(COMMENT):
     # ref: https://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment
     reg = r'(?s)/\*.*?\*/'
     token_type = 'M_COMMENT'
