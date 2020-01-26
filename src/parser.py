@@ -19,14 +19,46 @@ class Parser:
             pass
         return Root(functions)
     
-    def parse_func_def(self):
-        _type = self.consume(BASE_TYPE).value
-        name = self.consume(NAME).value
-        args = self.parse_args()
+    def parse_block(self):
+        statements = []
         self.consume(O_BRAC)
-        body = self.parse_expr()
+        if not self.match_tokens(C_BRAC):
+            statements = self.parse_statements()
         self.consume(C_BRAC)
-        return FuncDef(name, _type, args, body)
+        return Block(statements)
+    
+    def parse_statements(self):
+        statements = []
+        while not self.match_tokens(C_BRAC):
+            statements.append(self.parse_statement())
+        return statements
+    
+    def parse_statement(self):
+        statement = None
+        if self.match_tokens(NAME, EQ_ASSIGN_OP):
+            statement = self.parse_assignment()
+        elif self.match_tokens(BASE_TYPE, NAME, O_PAREN):
+            return self.parse_func_def()
+        elif self.match_tokens(BASE_TYPE, NAME):
+            statement = self.parse_var_def()
+        else:
+            statement = self.parse_expr()
+        # TODO: add control flows (if, for, while, ...)
+        self.consume(SEMICOLON)
+        return statement
+    
+    def parse_assignment(self):
+        return Assignment(
+            self.consume(NAME).value,
+            self.consume(ASSIGN_OP).value,
+            self.parse_expr())
+    
+    def parse_func_def(self):
+        return FuncDef(
+            self.consume(BASE_TYPE).value,
+            self.consume(NAME).value,
+            self.parse_args(),
+            self.parse_block())
     
     def consume(self, expected_type=None):
         self.parse_comment()
@@ -64,7 +96,7 @@ class Parser:
         default = None
         if self.match_tokens(EQ_ASSIGN_OP):
             self.consume(EQ_ASSIGN_OP)
-            default = self.parse_literal()
+            default = self.parse_expr()
         return VarDef(name, _type, default)
 
     def get_postfix(self):

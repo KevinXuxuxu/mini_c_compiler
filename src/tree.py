@@ -65,3 +65,9 @@ class FuncCall(namedtuple('FuncCall', ['name', 'params']), Tree):
 
 class Param(namedtuple('Param', ['name', 'expr']), Tree):
     pass
+
+class Block(namedtuple('Block', ['statements']), Tree):
+    pass
+
+class Assignment(namedtuple('Assignment', ['name', 'op', 'expr']), Tree):
+    pass
