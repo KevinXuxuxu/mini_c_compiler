@@ -9,5 +9,7 @@ bool test_func() {
     int plus(int a, int b) {
         a+b;
     }
+    return exp(a()+!--b);
     call(12, a=45%++b);
+    return;
 }

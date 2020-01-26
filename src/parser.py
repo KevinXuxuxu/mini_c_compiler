@@ -41,6 +41,8 @@ class Parser:
             return self.parse_func_def()
         elif self.match_tokens(BASE_TYPE, NAME):
             statement = self.parse_var_def()
+        elif self.match_tokens(RETURN):
+            statement = self.parse_return()
         else:
             statement = self.parse_expr()
         # TODO: add control flows (if, for, while, ...)
@@ -59,6 +61,12 @@ class Parser:
             self.consume(NAME).value,
             self.parse_args(),
             self.parse_block())
+    
+    def parse_return(self):
+        self.consume(RETURN)
+        if not self.match_tokens(SEMICOLON):
+            return Return(self.parse_expr())
+        return Return(None)
     
     def consume(self, expected_type=None):
         self.parse_comment()

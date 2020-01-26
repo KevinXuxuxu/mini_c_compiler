@@ -71,3 +71,6 @@ class Block(namedtuple('Block', ['statements']), Tree):
 
 class Assignment(namedtuple('Assignment', ['name', 'op', 'expr']), Tree):
     pass
+
+class Return(namedtuple('Return', ['expr']), Tree):
+    pass
