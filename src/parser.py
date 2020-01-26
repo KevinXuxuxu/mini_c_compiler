@@ -51,7 +51,7 @@ class Parser:
     
     def parse_assignment(self):
         return Assignment(
-            self.consume(NAME).value,
+            self.parse_var_ref(),
             self.consume(ASSIGN_OP).value,
             self.parse_expr())
     
@@ -154,7 +154,7 @@ class Parser:
         if isinstance(t, LITERAL):
             return self.parse_literal_internal(t)
         if isinstance(t, NAME):
-            return t.value  # TODO: maybe UntypedVar?
+            return VarRef(t.value, None)
         return t
     
     def to_unary_op(self, t):
@@ -207,9 +207,12 @@ class Parser:
     def parse_param(self):
         name = None
         if self.match_tokens(NAME, EQ_ASSIGN_OP):
-            name = self.consume(NAME).value
+            name = self.parse_var_ref()
             self.consume(EQ_ASSIGN_OP)
         return Param(name, self.parse_expr())
+
+    def parse_var_ref(self):
+        return VarRef(self.consume(NAME), None)
 
     def parse_literal(self):
         if self.match_tokens(LITERAL):
