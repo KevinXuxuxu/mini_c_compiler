@@ -35,7 +35,7 @@ class Parser:
     
     def parse_statement(self):
         statement = None
-        if self.match_tokens(NAME, EQ_ASSIGN_OP):
+        if self.match_tokens(NAME, ASSIGN_OP):
             statement = self.parse_assignment()
         elif self.match_tokens(BASE_TYPE, NAME, O_PAREN):
             return self.parse_func_def()
@@ -154,7 +154,9 @@ class Parser:
         if isinstance(t, LITERAL):
             return self.parse_literal_internal(t)
         if isinstance(t, NAME):
-            return VarRef(t.value, None)
+            if isinstance(t.value, FuncCall):
+                return t.value
+            return VarRef(t.value)
         return t
     
     def to_unary_op(self, t):
@@ -183,7 +185,7 @@ class Parser:
             raise ExpressionParseException(
                 "Unfinished expression parse\n    stack: {}".format(stack))
         return stack[0]
-    
+
     def parse_expr(self):
         return self.build_expr(self.get_postfix())
 
@@ -197,22 +199,23 @@ class Parser:
         params = []
         self.consume(O_PAREN)
         if not self.match_tokens(C_PAREN):
-            params.append(self.parse_param())
+            params.append(self.parse_expr())
         while self.match_tokens(COMMA):
             self.consume()
-            params.append(self.parse_param())
+            params.append(self.parse_expr())
         self.consume(C_PAREN)
         return params
     
-    def parse_param(self):
-        name = None
-        if self.match_tokens(NAME, EQ_ASSIGN_OP):
-            name = self.parse_var_ref()
-            self.consume(EQ_ASSIGN_OP)
-        return Param(name, self.parse_expr())
+    # Standard C does not support default value for parameters
+    # def parse_param(self):
+    #     name = None
+    #     if self.match_tokens(NAME, EQ_ASSIGN_OP):
+    #         name = self.parse_var_ref()
+    #         self.consume(EQ_ASSIGN_OP)
+    #     return Param(name, self.parse_expr())
 
     def parse_var_ref(self):
-        return VarRef(self.consume(NAME), None)
+        return VarRef(self.consume(NAME).value)
 
     def parse_literal(self):
         if self.match_tokens(LITERAL):
