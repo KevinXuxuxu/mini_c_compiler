@@ -13,7 +13,7 @@ class Parser:
     def parse_root(self):
         functions = []
         try:
-            while self.next_token_is(BASE_TYPE):
+            while self.match_tokens(BASE_TYPE):
                 functions.append(self.parse_func_def())
         except UnexpectedEndOfTokenListException:
             pass
@@ -35,9 +35,12 @@ class Parser:
             "Expecting token of type '{}' but got '{}'".format(
                 expected_type, type(self.tokens[0])))
     
-    def next_token_is(self, _type):
+    def match_tokens(self, *argv):
         try:
-            return isinstance(self.tokens[0], _type)
+            for i, _type in enumerate(argv):
+                if not isinstance(self.tokens[i], _type):
+                    return False
+            return True
         except IndexError:
             # TODO: add expecting token type to exception message
             raise UnexpectedEndOfTokenListException()
@@ -45,9 +48,9 @@ class Parser:
     def parse_args(self):
         args = []
         self.consume(O_PAREN)
-        if self.next_token_is(BASE_TYPE):
+        if self.match_tokens(BASE_TYPE):
             args.append(self.parse_var_def())
-            while self.next_token_is(COMMA):
+            while self.match_tokens(COMMA):
                 self.consume(COMMA)
                 args.append(self.parse_var_def())
         self.consume(C_PAREN)
@@ -57,7 +60,7 @@ class Parser:
         _type = self.consume(BASE_TYPE).value
         name = self.consume(NAME).value
         default = None
-        if self.next_token_is(EQ_ASSIGN_OP):
+        if self.match_tokens(EQ_ASSIGN_OP):
             self.consume(EQ_ASSIGN_OP)
             default = self.parse_literal()
         return VarDef(name, _type, default)
@@ -67,21 +70,27 @@ class Parser:
         postfix = []
         prev = stack[0]
         while True:
-            if self.next_token_is(NAME) or self.next_token_is(LITERAL):
+            if self.match_tokens(NAME) or self.match_tokens(LITERAL):
                 t = self.consume()
                 postfix.append(t)
                 prev = t
-            elif self.next_token_is(O_PAREN):
-                t = self.consume()
-                t.gen(prev)
-                stack.append(t)
-                prev = t
-            elif self.next_token_is(C_PAREN):
+            elif self.match_tokens(O_PAREN):
+                if isinstance(prev, NAME):
+                    # replace previous NAME with FUNC_CALL
+                    postfix[-1] = FUNC_CALL(self.parse_func_call(prev.value))
+                else:
+                    t = self.consume()
+                    t.gen(prev)
+                    stack.append(t)
+                    prev = t
+            elif self.match_tokens(C_PAREN):
                 while not isinstance(stack[-1], O_PAREN):
+                    if isinstance(stack[-1], HASH_OP):
+                        return postfix
                     postfix.append(stack.pop())
                 stack.pop()  # pop out O_PAREN
                 prev = self.consume()
-            elif self.next_token_is(OP):
+            elif self.match_tokens(OP):
                 op = self.consume()
                 op.gen(prev)
                 op_prec, top_prec = op.get_prec(), stack[-1].get_prec()
@@ -115,17 +124,12 @@ class Parser:
         stack = []
         for t in postfix:
             if isinstance(t, LITERAL) or isinstance(t, NAME):
-                stack.append(t)
+                stack.append(self.to_operand(t))
             elif isinstance(t, OP):
                 if t.get_type() == 'B':
-                    stack.append(BinaryOp(
-                        t.value,
-                        self.to_operand(stack.pop()),
-                        self.to_operand(stack.pop())))
+                    stack.append(BinaryOp(t.value, stack.pop(), stack.pop()))
                 elif t.get_type() in ['LU', 'RU']:
-                    stack.append(UnaryOp(
-                        self.to_unary_op(t),
-                        self.to_operand(stack.pop())))
+                    stack.append(UnaryOp(self.to_unary_op(t), stack.pop()))
                 else:
                     raise ExpressionParseException(
                         "Unrecognized operator type {} from operator {}".format(
@@ -141,8 +145,32 @@ class Parser:
     def parse_expr(self):
         return self.build_expr(self.get_postfix())
 
+    def parse_func_call(self, name=None):
+        if name is None:
+            name = self.consume(NAME).value
+        params = self.parse_params()
+        return FuncCall(name, params)
+    
+    def parse_params(self):
+        params = []
+        self.consume(O_PAREN)
+        if not self.match_tokens(C_PAREN):
+            params.append(self.parse_param())
+        while self.match_tokens(COMMA):
+            self.consume()
+            params.append(self.parse_param())
+        self.consume(C_PAREN)
+        return params
+    
+    def parse_param(self):
+        name = None
+        if self.match_tokens(NAME, EQ_ASSIGN_OP):
+            name = self.consume(NAME).value
+            self.consume(EQ_ASSIGN_OP)
+        return Param(name, self.parse_expr())
+
     def parse_literal(self):
-        if self.next_token_is(LITERAL):
+        if self.match_tokens(LITERAL):
             return self.parse_literal_internal(self.consume(LITERAL))
 
     def parse_literal_internal(self, token):
