@@ -24,8 +24,7 @@ class Parser:
         name = self.consume(NAME).value
         args = self.parse_args()
         self.consume(O_BRAC)
-        # body = self.parse_expr()
-        body = self.parse_func_call()
+        body = self.parse_expr()
         self.consume(C_BRAC)
         return FuncDef(name, _type, args, body)
     
@@ -76,10 +75,14 @@ class Parser:
                 postfix.append(t)
                 prev = t
             elif self.match_tokens(O_PAREN):
-                t = self.consume()
-                t.gen(prev)
-                stack.append(t)
-                prev = t
+                if isinstance(prev, NAME):
+                    # replace previous NAME with FUNC_CALL
+                    postfix[-1] = FUNC_CALL(self.parse_func_call(prev.value))
+                else:
+                    t = self.consume()
+                    t.gen(prev)
+                    stack.append(t)
+                    prev = t
             elif self.match_tokens(C_PAREN):
                 while not isinstance(stack[-1], O_PAREN):
                     if isinstance(stack[-1], HASH_OP):
@@ -123,17 +126,12 @@ class Parser:
         stack = []
         for t in postfix:
             if isinstance(t, LITERAL) or isinstance(t, NAME):
-                stack.append(t)
+                stack.append(self.to_operand(t))
             elif isinstance(t, OP):
                 if t.get_type() == 'B':
-                    stack.append(BinaryOp(
-                        t.value,
-                        self.to_operand(stack.pop()),
-                        self.to_operand(stack.pop())))
+                    stack.append(BinaryOp(t.value, stack.pop(), stack.pop()))
                 elif t.get_type() in ['LU', 'RU']:
-                    stack.append(UnaryOp(
-                        self.to_unary_op(t),
-                        self.to_operand(stack.pop())))
+                    stack.append(UnaryOp(self.to_unary_op(t), stack.pop()))
                 else:
                     raise ExpressionParseException(
                         "Unrecognized operator type {} from operator {}".format(
@@ -150,8 +148,8 @@ class Parser:
         return self.build_expr(self.get_postfix())
 
     def parse_func_call(self, name=None):
-        if not name:
-            name = self.consume(NAME)
+        if name is None:
+            name = self.consume(NAME).value
         params = self.parse_params()
         return FuncCall(name, params)
     

@@ -224,6 +224,8 @@ class NAME(Token):
     reg = r'\b[a-zA-Z_][a-zA-Z0-9_]*\b'
     token_type = 'NAME'
 
+class FUNC_CALL(NAME):
+    pass
 
 class Tokenizer:
 
