@@ -55,7 +55,10 @@ class WrongNumberOfArguments(ValidationException):
         Expected {} but got {}
         """.format(name, expected, got))
 
-class BadReturnException(ValidationException):
+class UnexpectedReturnException(ValidationException):
+    pass
 
-    def __init__(self):
-        super().__init__("Cannot return in current context")
+class UnreturnedFunctionException(ValidationException):
+
+    def __init__(self, name):
+        super().__init__("Function {} is not returned".format(name))

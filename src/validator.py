@@ -3,21 +3,33 @@ from exceptions import *
 from collections import namedtuple, defaultdict
 from random import randint
 
-class Context(namedtuple('Context', ['id', 'type'])):
+class Context(namedtuple('Context', ['id', 'type', 'parent'])):
+    returned = False
 
     def __repr__(self):
-        return "C({}, {})".format(self.id, self.type)
+        return "C({}, {}, {})".format(
+            self.id,
+            self.type,
+            self.parent.id if self.parent else "None")
+
+    def get_return_target(self):
+        c = self
+        while c != None and c.type is None:
+            c = c.parent
+        if c is None:
+            raise UnexpectedReturnException()
+        return c
 
 class Validator:
 
     current_ctx = 0
 
-    def new_ctx(self, _type=None):
+    def new_ctx(self, _type=None, parent=None):
         self.current_ctx += 1
-        return Context(self.current_ctx, _type)
+        return Context(self.current_ctx, _type, parent)
 
     def get_max_ctx_before(self, ctx_map, ctx):
-        maxi = Context(-1, None)
+        maxi = Context(-1, None, None)
         for x in ctx_map:
             if x.id < ctx.id and x.id > maxi.id:
                 maxi = x
@@ -47,7 +59,7 @@ class Validator:
         node,
         v_map=defaultdict(dict),
         f_map=defaultdict(dict),
-        ctx=Context(0, None)
+        ctx=Context(0, None, None)
     ):
         # print("v_map: {}".format(v_map))
         # print("f_map: {}".format(f_map))
@@ -92,15 +104,15 @@ class Validator:
             self.validate(node.expr, v_map, f_map, ctx)
             BinaryOp(node.op[0], node.expr, node.var_ref).check_type()
         elif isinstance(node, Return):
-            if ctx.type is None:
-                raise BadReturnException()
+            target_ctx = ctx.get_return_target()
             if node.expr == None:
-                if ctx.type != 'void':
+                if target_ctx.type != 'void':
                     raise TypeMismatchException(ctx.type, 'void')
             else:
                 self.validate(node.expr, v_map, f_map, ctx)
-                if ctx.type != node.expr.type:
+                if target_ctx.type != node.expr.type:
                     raise TypeMismatchException(ctx.type, node.expr.type)
+            target_ctx.returned = True
 
                 
     def validate_func_def(self, node, v_map, f_map, ctx):
@@ -109,13 +121,15 @@ class Validator:
             # TODO: support function overloading
             raise FunctionDefDuplication(
                 "Function {} already defined in this context".format(name))
-        new_v_map, new_f_map, new_ctx = v_map.copy(), f_map.copy(), self.new_ctx(_type)
+        new_v_map, new_f_map, new_ctx = v_map.copy(), f_map.copy(), self.new_ctx(_type, ctx)
         for v in node.args:
             has_default = self.validate_var_def(v, new_v_map, new_f_map, new_ctx)
             if has_default:
                 raise DefaultParameterInFunctionDef(name, v.name)
         f_map[name][ctx] = (_type, [v.type for v in node.args])
         self.validate(node.body, new_v_map, new_f_map, new_ctx)
+        if _type != 'void' and not new_ctx.returned:
+            raise UnreturnedFunctionException(name)
 
     def validate_var_def(self, node, v_map, f_map, ctx):
         name, _type, default = node.name, node.type, node.default
