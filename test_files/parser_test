@@ -2,7 +2,7 @@
     1+!(++a--+(++b))*5 + call1(12, a*(c+call2(!b)), r) * 3
 }
 */
-
+/*
 bool test_func() {
     a = 12*3 + sqrt(a * (b+c));
     int q = p++;
@@ -10,6 +10,22 @@ bool test_func() {
         a+b;
     }
     return exp(a()+!--b);
-    call(12, a=45%++b);
+    call(12, 45%++b);
     return;
+} */
+
+int plus(int a, int b) {
+    return a+b;
+}
+
+bool test_func(int a, bool b) {
+    int c = plus(12*(1+4), a);
+    a += 12 * c % 5;
+
+    bool func2(bool x, bool y) {
+        int c = 2;
+        return (x || y ) && b;
+    }
+
+    // return !func2(b, b);
 }
