@@ -104,6 +104,8 @@ class BinaryOp(namedtuple('BinaryOp', ['op', 'right', 'left']), Operator):
         '||': ['bool'],
         '=': '*'
     }
+
+    logic_ops = ['>', '<', '>=', '<=', '!=', '==', '&&', '||']
     
     def check_type(self):
         l_type, r_type, allowed = self.left.type, self.right.type, self.type_map[self.op]
@@ -111,7 +113,11 @@ class BinaryOp(namedtuple('BinaryOp', ['op', 'right', 'left']), Operator):
             raise TypeMismatchException(allowed, l_type)
         if r_type != l_type:
             raise TypeMismatchException(l_type, r_type)
-        self.type = l_type
+        # TODO: is there a more generic way to do this?
+        if self.op in self.logic_ops:
+            self.type = 'bool'
+        else:
+            self.type = l_type
 
 class FuncCall(namedtuple('FuncCall', ['name', 'params']), Typable):
     pass
@@ -126,4 +132,7 @@ class Assignment(namedtuple('Assignment', ['var_ref', 'op', 'expr']), Tree):
     pass
 
 class Return(namedtuple('Return', ['expr']), Tree):
+    pass
+
+class If(namedtuple('If', ['cond', 'true_body', 'false_body']), Tree):
     pass
