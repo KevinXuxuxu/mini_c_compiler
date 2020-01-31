@@ -63,9 +63,9 @@ class Validator:
     ):
         # print("v_map: {}".format(v_map))
         # print("f_map: {}".format(f_map))
-        print("context: {}".format(ctx))
-        print("what: {}".format(node))
-        print()
+        # print("context: {}".format(ctx))
+        # print("what: {}".format(node))
+        # print()
         if isinstance(node, Root):
             for f in node.functions:
                 self.validate_func_def(f, v_map, f_map, ctx)
@@ -105,8 +105,6 @@ class Validator:
             BinaryOp(node.op[0], node.expr, node.var_ref).check_type()
         elif isinstance(node, Return):
             target_ctx = ctx.get_return_target()
-            print(target_ctx)
-            print()
             if node.expr == None:
                 if target_ctx.type != 'void':
                     raise TypeMismatchException(ctx.type, 'void')
