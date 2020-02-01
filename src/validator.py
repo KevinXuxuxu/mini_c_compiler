@@ -113,6 +113,8 @@ class Validator:
                 if target_ctx.type != node.expr.type:
                     raise TypeMismatchException(ctx.type, node.expr.type)
             target_ctx.returned = True
+        elif isinstance(node, If):
+            self.validate_if(node, v_map, f_map, ctx)
 
                 
     def validate_func_def(self, node, v_map, f_map, ctx):
@@ -121,12 +123,12 @@ class Validator:
             # TODO: support function overloading
             raise FunctionDefDuplication(
                 "Function {} already defined in this context".format(name))
+        f_map[name][ctx] = (_type, [v.type for v in node.args])
         new_v_map, new_f_map, new_ctx = v_map.copy(), f_map.copy(), self.new_ctx(_type, ctx)
         for v in node.args:
             has_default = self.validate_var_def(v, new_v_map, new_f_map, new_ctx)
             if has_default:
                 raise DefaultParameterInFunctionDef(name, v.name)
-        f_map[name][ctx] = (_type, [v.type for v in node.args])
         self.validate(node.body, new_v_map, new_f_map, new_ctx)
         if _type != 'void' and not new_ctx.returned:
             raise UnreturnedFunctionException(name)
@@ -142,4 +144,12 @@ class Validator:
                 raise TypeMismatchException(_type, default.type)
         v_map[name][ctx] = _type
         return default != None
+
+    def validate_if(self, node, v_map, f_map, ctx):
+        cond, t_body, f_body = node.cond, node.true_body, node.false_body
+        self.validate(cond, v_map, f_map, ctx)
+        if cond.type != 'bool':
+            raise TypeMismatchException('bool', cond.type)
+        self.validate(t_body, v_map.copy(), f_map.copy(), self.new_ctx(None, ctx))
+        self.validate(f_body, v_map.copy(), f_map.copy(), self.new_ctx(None, ctx))
         

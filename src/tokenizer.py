@@ -43,6 +43,14 @@ class RETURN(Token):
     reg = r'\breturn\b'
     token_type = 'RETURN'
 
+class IF(Token):
+    reg = r'\bif\b'
+    token_type = 'IF'
+
+class ELSE(Token):
+    reg = r'\belse\b'
+    token_type = 'ELSE'
+
 class OP(Token):
 
     # (
@@ -171,8 +179,15 @@ class SHIFT_OP(BITWISE_OP):
     token_type = 'SHIFT_OP'
 
 class RELA_OP(OP):
-    reg = r'==|>|<|>=|<=|!='
-    token_type = 'RELA_OP'
+    pass
+
+class RELA_OP1(RELA_OP):
+    reg = r'==|>=|<=|!='
+    token_type = 'RELA_OP1'
+
+class RELA_OP2(RELA_OP):
+    reg = r'>|<'
+    token_type = 'RELA_OP2'
 
 class LOGICAL_OP(OP):
     reg = r'&&|\|\||!'
@@ -246,6 +261,8 @@ class Tokenizer:
         NULL,
         BASE_TYPE,
         RETURN,
+        IF,
+        ELSE,
         O_PAREN,
         C_PAREN,
         O_BRAC,
@@ -256,7 +273,8 @@ class Tokenizer:
         M_COMMENT,
         CREMENT_OP,
         SHIFT_OP,
-        RELA_OP,
+        RELA_OP1,
+        RELA_OP2,
         LOGICAL_OP,
         BITWISE_LOGIC_OP,
         ASSIGN_OP,

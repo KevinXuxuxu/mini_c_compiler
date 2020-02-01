@@ -41,6 +41,8 @@ class Parser:
             return self.parse_func_def()
         elif self.match_tokens(BASE_TYPE, NAME):
             statement = self.parse_var_def()
+        elif self.match_tokens(IF):
+            return self.parse_if()
         elif self.match_tokens(RETURN):
             statement = self.parse_return()
         else:
@@ -239,3 +241,22 @@ class Parser:
     def parse_comment(self):
         while isinstance(self.tokens[0], COMMENT):
             self.tokens.pop(0)
+
+    def parse_if(self):
+        self.consume(IF)
+        self.consume(O_PAREN)
+        cond = self.parse_expr()
+        self.consume(C_PAREN)
+        true_body = None
+        if self.match_tokens(O_BRAC):
+            true_body = self.parse_block()
+        else:
+            true_body = Block([self.parse_statement()])
+        false_body = None
+        if self.match_tokens(ELSE):
+            self.consume()
+            if self.match_tokens(O_BRAC):
+                false_body = self.parse_block()
+            else:
+                false_body = Block([self.parse_statement()])
+        return If(cond, true_body, false_body)
