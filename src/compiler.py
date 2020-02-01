@@ -1,7 +1,6 @@
 import sys
 from tokenizer import Tokenizer
 from parser import Parser
-from validator import Validator
 
 
 def main():
@@ -16,7 +15,7 @@ def main():
     # print(tree)
     print(tree.to_str())
 
-    tree.validate()
+    # tree.validate()
 
 if __name__ == '__main__':
     main()

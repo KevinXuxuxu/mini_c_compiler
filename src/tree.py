@@ -115,7 +115,7 @@ class Literal(namedtuple('Literal', ['type', 'value']), Tree):
 class Typable(Tree):
     type = None
 
-class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
+class VarDef(namedtuple('VarDef', ['name', 'type', 'len', 'default']), Tree):
     
     def validate(self, ctx):
         name, _type, default = self.name, self.type, self.default
