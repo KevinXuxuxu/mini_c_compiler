@@ -14,8 +14,49 @@
 """
 
 from collections import namedtuple
+from random import randint
 from utils import unescape
 from exceptions import *
+
+class Context(namedtuple('Context', ['id', 'type', 'parent', 'v_map', 'f_map'])):
+    returned = False
+    
+    def __repr__(self):
+        return "C({}, {} , {}, {}, {})".format(
+            self.id,
+            self.type,
+            self.parent.id if self.parent else "None",
+            self.v_map.keys(),
+            self.f_map.keys())
+    
+    def get_var(self, name):
+        c = self
+        while c is not None and name not in c.v_map:
+            c = c.parent
+        if c is None:
+            return None
+        return c.v_map[name]
+    
+    def get_func(self, name):
+        c = self
+        while c is not None and name not in c.f_map:
+            c = c.parent
+        if c is None:
+            return None
+        return c.f_map[name]
+    
+    def get_return_target(self):
+        c = self
+        while c != None and c.type is None:
+            c = c.parent
+        if c is None:
+            raise UnexpectedReturnException()
+        return c
+    
+    @classmethod
+    def new(cls, _type, parent):
+        return Context(randint(1, 1000000), _type, parent, {}, {})
+
 
 class Tree:
     """ This is an interface"""
@@ -41,13 +82,32 @@ class Tree:
             else:
                 s += "{}{}: {}\n".format(self.unit * i, field, unescape(value))
         return s
+    
+    def validate(self, ctx):
+        pass
 
 
 class Root(namedtuple('Root', ['functions']), Tree):
-    pass
+    
+    def validate(self, ctx=Context(0, None, None, {}, {})):
+        for f in self.functions:
+            f.validate(ctx)
 
 class FuncDef(namedtuple('FuncDef', ['type', 'name', 'args', 'body']), Tree):
-    pass
+    
+    def validate(self, ctx):
+        name, _type = self.name, self.type
+        if name in ctx.f_map:
+            raise FunctionDefDuplication(name)
+        ctx.f_map[name] = (_type, [v.type for v in self.args])
+        new_ctx = Context.new(_type, ctx)
+        for v in self.args:
+            has_default = v.validate(new_ctx)
+            if has_default:
+                raise DefaultParameterInFunctionDef(name, v.name)
+        self.body.validate(new_ctx)
+        if _type != 'void' and not new_ctx.returned:
+            raise UnreturnedFunctionException(name)
 
 class Literal(namedtuple('Literal', ['type', 'value']), Tree):
     pass
@@ -56,10 +116,22 @@ class Typable(Tree):
     type = None
 
 class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
-    pass
+    
+    def validate(self, ctx):
+        name, _type, default = self.name, self.type, self.default
+        if name in ctx.v_map:
+            raise VariableDefDuplication(name)
+        if default != None:
+            default.validate(ctx)
+            if default.type != _type:
+                raise TypeMismatchException(_type, default.type)
+        ctx.v_map[name] = _type
+        return default != None
 
 class VarRef(namedtuple('VarRef', ['name']), Typable):
-    pass
+    
+    def validate(self, ctx):
+        self.type = ctx.get_var(self.name)
 
 class Operator(Typable):
     pass
@@ -81,6 +153,10 @@ class UnaryOp(namedtuple('UnaryOp', ['op', 'child']), Operator):
         if c_type not in allowed:
             return TypeMismatchException(allowed, c_type)
         self.type = c_type
+    
+    def validate(self, ctx):
+        self.child.validate(ctx)
+        self.check_type()
 
 class BinaryOp(namedtuple('BinaryOp', ['op', 'right', 'left']), Operator):
     type_map = {
@@ -118,21 +194,60 @@ class BinaryOp(namedtuple('BinaryOp', ['op', 'right', 'left']), Operator):
             self.type = 'bool'
         else:
             self.type = l_type
+    
+    def validate(self, ctx):
+        self.left.validate(ctx)
+        self.right.validate(ctx)
+        self.check_type()
 
 class FuncCall(namedtuple('FuncCall', ['name', 'params']), Typable):
-    pass
+    
+    def validate(self, ctx):
+        self.type, v_types = ctx.get_func(self.name)
+        params = self.params
+        if len(params) != len(v_types):
+            raise WrongNumberOfArguments(self.name, len(v_types), len(params))
+        for i, expr in enumerate(params):
+            expr.validate(ctx)
+            if v_types[i] != expr.type:
+                raise TypeMismatchException(v_types[i], expr.type)
 
 # class Param(namedtuple('Param', ['name', 'expr']), Tree):
 #     pass
 
 class Block(namedtuple('Block', ['statements']), Tree):
-    pass
+
+    def validate(self, ctx):
+        for st in self.statements:
+            st.validate(ctx)
 
 class Assignment(namedtuple('Assignment', ['var_ref', 'op', 'expr']), Tree):
-    pass
+
+    def validate(self, ctx):
+        self.var_ref.validate(ctx)
+        self.expr.validate(ctx)
+        BinaryOp(self.op[0], self.expr, self.var_ref).check_type()
 
 class Return(namedtuple('Return', ['expr']), Tree):
-    pass
+
+    def validate(self, ctx):
+        target_ctx = ctx.get_return_target()
+        if self.expr == None:
+            if target_ctx.type != 'void':
+                raise TypeMismatchException(target_ctx.type, 'void')
+        else:
+            self.expr.validate(ctx)
+            if target_ctx.type != self.expr.type:
+                raise TypeMismatchException(target_ctx.type, self.expr.type)
+        target_ctx.returned = True
 
 class If(namedtuple('If', ['cond', 'true_body', 'false_body']), Tree):
-    pass
+    
+    def validate(self, ctx):
+        cond = self.cond
+        cond.validate(ctx)
+        if cond.type != 'bool':
+            raise TypeMismatchException('bool', cond.type)
+        self.true_body.validate(Context.new(None, ctx))
+        if self.false_body != None:
+            self.false_body.validate(Context.new(None, ctx))
