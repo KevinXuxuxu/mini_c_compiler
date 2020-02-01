@@ -61,10 +61,11 @@ class Context(namedtuple('Context', ['id', 'type', 'parent', 'v_map', 'f_map']))
 class Tree:
     """ This is an interface"""
     unit = ' '*3
+    extra_fields = []
     
     def to_str(self, i=1):
         s = "{}:\n".format(type(self).__name__)
-        for field in self._fields:
+        for field in list(self._fields) + self.extra_fields:
             value = self.__getattribute__(field)
             if isinstance(value, Tree):
                 s += "{}{}:{}".format(
@@ -114,18 +115,52 @@ class Literal(namedtuple('Literal', ['type', 'value']), Tree):
 
 class Typable(Tree):
     type = None
+    extra_fields = ['type']
 
-class VarDef(namedtuple('VarDef', ['name', 'type', 'len', 'default']), Tree):
+class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
+
+    extra_fields = ['len']
+
+    def set_len(self, _len):
+        self.len = _len
+        return self
+
+    def validate_len(self, ctx):
+        _len = self.len
+        if _len is not None and _len != '*':
+            _len.validate(ctx)
+            if _len.type != 'int':
+                raise TypeMismatchException('int', _len.type)
+            if isinstance(_len, Literal):
+                l = int(_len.value)
+                if self.default != None and l < len(self.default):
+                    raise ArrayInitializeException(self.name, l, len(self.default))
+                self.len = l
     
     def validate(self, ctx):
-        name, _type, default = self.name, self.type, self.default
+        name, _type, _len, default = self.name, self.type, self.len, self.default
         if name in ctx.v_map:
             raise VariableDefDuplication(name)
-        if default != None:
-            default.validate(ctx)
-            if default.type != _type:
-                raise TypeMismatchException(_type, default.type)
-        ctx.v_map[name] = _type
+        if _len is None:
+            if default != None:
+                default.validate(ctx)
+                if default.type != _type:
+                    raise TypeMismatchException(_type, default.type)
+            ctx.v_map[name] = _type
+        else:
+            if default is None:
+                if _len == '*':
+                    raise ArrayTypeException(name)
+                self.validate_len(ctx)
+            elif isinstance(default, list):
+                for expr in default:
+                    expr.validate(ctx)
+                    if expr.type != _type:
+                        raise TypeMismatchException(_type, expr.type)
+                if _len == '*':
+                    self.len = len(default)
+                else:
+                    self.validate_len(ctx)
         return default != None
 
 class VarRef(namedtuple('VarRef', ['name']), Typable):

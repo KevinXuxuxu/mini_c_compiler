@@ -131,7 +131,7 @@ class Parser:
         if self.match_tokens(EQ_ASSIGN_OP):
             self.consume(EQ_ASSIGN_OP)
             default = self.parse_default()
-        return VarDef(name, _type, _len, default)
+        return VarDef(name, _type, default).set_len(_len)
 
     def get_postfix(self):
         stack = [HASH_OP('#').gen(None)]

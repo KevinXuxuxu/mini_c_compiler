@@ -71,3 +71,15 @@ class UnreturnedFunctionException(ValidationException):
 
     def __init__(self, name):
         super().__init__("Function {} is not returned".format(name))
+
+class ArrayTypeException(ValidationException):
+
+    def __init__(self, name):
+        super().__init__("Definition of variable {} with array type needs \
+            an explicit size or an initializer".format(name))
+
+class ArrayInitializeException(ValidationException):
+
+    def __init__(self, name, expected, got):
+        super().__init__("Expecting {} elements in initializing array {} but got {}".format(
+            expected, name, got))

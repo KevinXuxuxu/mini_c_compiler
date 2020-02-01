@@ -12,10 +12,8 @@ def main():
 
     P = Parser()
     tree = P.parse(tokens)
-    # print(tree)
+    tree.validate()
     print(tree.to_str())
-
-    # tree.validate()
 
 if __name__ == '__main__':
     main()
