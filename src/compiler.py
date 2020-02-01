@@ -16,8 +16,7 @@ def main():
     # print(tree)
     print(tree.to_str())
 
-    V = Validator()
-    V.validate(tree)
+    tree.validate()
 
 if __name__ == '__main__':
     main()

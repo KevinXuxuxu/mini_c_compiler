@@ -13,11 +13,20 @@ class TokenizeFailedException(Exception):
 class ValidationException(Exception):
     pass
 
-class FunctionDefDuplication(ValidationException):
-    pass
+class DefinitionDuplicationException(ValidationException):
 
-class VariableDefDuplication(ValidationException):
-    pass
+    def __init__(self, what, name):
+        super().__init__("{} {} is already defined in this context".format(what, name))
+
+class FunctionDefDuplication(DefinitionDuplicationException):
+    
+    def __init__(self, name):
+        super().__init__('Function', name)
+
+class VariableDefDuplication(DefinitionDuplicationException):
+    
+    def __init__(self, name):
+        super().__init__('Variable', name)
 
 class TypeMismatchException(ValidationException):
     
