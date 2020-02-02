@@ -296,3 +296,12 @@ class If(namedtuple('If', ['cond', 'true_body', 'false_body']), Tree):
         self.true_body.validate(Context.new(None, ctx))
         if self.false_body != None:
             self.false_body.validate(Context.new(None, ctx))
+
+class While(namedtuple('While', ['cond', 'body']), Tree):
+    
+    def validate(self, ctx):
+        cond = self.cond
+        cond.validate(ctx)
+        if cond.type != 'bool':
+            raise TypeMismatchException('bool', cond.type)
+        self.body.validate(Context.new(None, ctx))

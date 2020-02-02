@@ -44,13 +44,20 @@ int get_max(int a, int b) {
 }
 */
 
+/*
 int max(int a, int b) {
     if (a > b)
         return a;
     return b;
 }
+*/
 
 int test() {
-    int a[4] = {1,2,3,4};
-    return 12*a[1] - a[1 + a[max(a[0], 12)]];
+    int i = 0;
+    while(i < 10) {
+        i++;
+    }
+    while (i > -2)
+        if (i == 0)
+            return i;
 }

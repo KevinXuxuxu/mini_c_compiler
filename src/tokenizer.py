@@ -51,6 +51,10 @@ class ELSE(Token):
     reg = r'\belse\b'
     token_type = 'ELSE'
 
+class WHILE(Token):
+    reg = r'\bwhile\b'
+    token_tyle = 'WHILE'
+
 class OP(Token):
 
     # (
@@ -266,6 +270,7 @@ class Tokenizer:
         RETURN,
         IF,
         ELSE,
+        WHILE,
         O_PAREN,
         C_PAREN,
         O_BRAC,
