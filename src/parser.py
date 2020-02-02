@@ -43,6 +43,8 @@ class Parser:
             statement = self.parse_var_def()
         elif self.match_tokens(IF):
             return self.parse_if()
+        elif self.match_tokens(WHILE):
+            return self.parse_while()
         elif self.match_tokens(RETURN):
             statement = self.parse_return()
         else:
@@ -297,3 +299,15 @@ class Parser:
             else:
                 false_body = Block([self.parse_statement()])
         return If(cond, true_body, false_body)
+
+    def parse_while(self):
+        self.consume(WHILE)
+        self.consume(O_PAREN)
+        cond = self.parse_expr()
+        self.consume(C_PAREN)
+        body = None
+        if self.match_tokens(O_BRAC):
+            body = self.parse_block()
+        else:
+            body = Block([self.parse_statement()])
+        return While(cond, body)
