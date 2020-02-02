@@ -58,6 +58,6 @@ int test() {
         i++;
     }
     while (i > -2)
-        i--;
-    return i;
+        if (i == 0)
+            return i;
 }
