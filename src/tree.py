@@ -247,6 +247,9 @@ class FuncCall(namedtuple('FuncCall', ['name', 'params']), Typable):
             if v_types[i] != expr.type:
                 raise TypeMismatchException(v_types[i], expr.type)
 
+class ArrayRef(namedtuple('ArrayRef', ['name', 'index']), Typable):
+    pass
+
 # class Param(namedtuple('Param', ['name', 'expr']), Tree):
 #     pass
 

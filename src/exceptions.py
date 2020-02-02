@@ -7,6 +7,11 @@ class UnexpectedEndOfTokenListException(ParseException):
 class ExpressionParseException(ParseException):
     pass
 
+class UnexpectedArrayReference(ParseException):
+
+    def __init__(self):
+        super().__init__("Unexpected array reference with token '['")
+
 class TokenizeFailedException(Exception):
     pass
 

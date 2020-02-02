@@ -142,6 +142,11 @@ class Parser:
                 t = self.consume()
                 postfix.append(t)
                 prev = t
+            elif self.match_tokens(O_SQ_BRAC):
+                if isinstance(prev, NAME):
+                    postfix[-1] = ARRAY_REF(self.parse_array_ref(prev.value))
+                else:
+                    raise UnexpectedArrayReference()
             elif self.match_tokens(O_PAREN):
                 if isinstance(prev, NAME):
                     # replace previous NAME with FUNC_CALL
@@ -180,7 +185,7 @@ class Parser:
         if isinstance(t, LITERAL):
             return self.parse_literal_internal(t)
         if isinstance(t, NAME):
-            if isinstance(t.value, FuncCall):
+            if isinstance(t.value, FuncCall) or isinstance(t.value, ArrayRef):
                 return t.value
             return VarRef(t.value)
         return t
@@ -221,6 +226,14 @@ class Parser:
         params = self.parse_params()
         return FuncCall(name, params)
     
+    def parse_array_ref(self, name=None):
+        if name is None:
+            name = self.consume(NAME).value
+        self.consume(O_SQ_BRAC)
+        expr = self.parse_expr()
+        self.consume(C_SQ_BRAC)
+        return ArrayRef(name, expr)
+
     def parse_params(self):
         params = []
         self.consume(O_PAREN)

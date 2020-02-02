@@ -245,6 +245,9 @@ class NAME(Token):
 class FUNC_CALL(NAME):
     pass
 
+class ARRAY_REF(NAME):
+    pass
+
 class Tokenizer:
 
     # TODO: float double
