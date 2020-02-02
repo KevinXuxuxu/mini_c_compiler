@@ -99,15 +99,39 @@ class Parser:
                 args.append(self.parse_var_def())
         self.consume(C_PAREN)
         return args
-    
-    def parse_var_def(self):
+
+    def parse_var_name(self):
         _type = self.consume(BASE_TYPE).value
         name = self.consume(NAME).value
+        if self.match_tokens(O_SQ_BRAC):
+            self.consume(O_SQ_BRAC)
+            if self.match_tokens(C_SQ_BRAC):
+                self.consume(C_SQ_BRAC)
+                return name, _type, '*'
+            else:
+                expr = self.parse_expr()
+                self.consume(C_SQ_BRAC)
+                return name, _type, expr
+        return name, _type, None
+
+    def parse_default(self):
+        if self.match_tokens(O_BRAC):
+            self.consume(O_BRAC)
+            default = [self.parse_expr()]
+            while self.match_tokens(COMMA):
+                self.consume(COMMA)
+                default.append(self.parse_expr())
+            self.consume(C_BRAC)
+            return default
+        return self.parse_expr()
+
+    def parse_var_def(self):
+        name, _type, _len = self.parse_var_name()
         default = None
         if self.match_tokens(EQ_ASSIGN_OP):
             self.consume(EQ_ASSIGN_OP)
-            default = self.parse_expr()
-        return VarDef(name, _type, default)
+            default = self.parse_default()
+        return VarDef(name, _type, default).set_len(_len)
 
     def get_postfix(self):
         stack = [HASH_OP('#').gen(None)]
@@ -118,6 +142,11 @@ class Parser:
                 t = self.consume()
                 postfix.append(t)
                 prev = t
+            elif self.match_tokens(O_SQ_BRAC):
+                if isinstance(prev, NAME):
+                    postfix[-1] = ARRAY_REF(self.parse_array_ref(prev.value))
+                else:
+                    raise UnexpectedArrayReference()
             elif self.match_tokens(O_PAREN):
                 if isinstance(prev, NAME):
                     # replace previous NAME with FUNC_CALL
@@ -156,7 +185,7 @@ class Parser:
         if isinstance(t, LITERAL):
             return self.parse_literal_internal(t)
         if isinstance(t, NAME):
-            if isinstance(t.value, FuncCall):
+            if isinstance(t.value, FuncCall) or isinstance(t.value, ArrayRef):
                 return t.value
             return VarRef(t.value)
         return t
@@ -197,6 +226,14 @@ class Parser:
         params = self.parse_params()
         return FuncCall(name, params)
     
+    def parse_array_ref(self, name=None):
+        if name is None:
+            name = self.consume(NAME).value
+        self.consume(O_SQ_BRAC)
+        expr = self.parse_expr()
+        self.consume(C_SQ_BRAC)
+        return ArrayRef(name, expr)
+
     def parse_params(self):
         params = []
         self.consume(O_PAREN)

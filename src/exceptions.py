@@ -7,6 +7,11 @@ class UnexpectedEndOfTokenListException(ParseException):
 class ExpressionParseException(ParseException):
     pass
 
+class UnexpectedArrayReference(ParseException):
+
+    def __init__(self):
+        super().__init__("Unexpected array reference with token '['")
+
 class TokenizeFailedException(Exception):
     pass
 
@@ -71,3 +76,20 @@ class UnreturnedFunctionException(ValidationException):
 
     def __init__(self, name):
         super().__init__("Function {} is not returned".format(name))
+
+class ArrayTypeException(ValidationException):
+
+    def __init__(self, name):
+        super().__init__("Definition of variable {} with array type needs \
+            an explicit size or an initializer".format(name))
+
+class ArrayInitializeException(ValidationException):
+
+    def __init__(self, name, expected, got):
+        super().__init__("Expecting {} elements in initializing array {} but got {}".format(
+            expected, name, got))
+
+class NotAnArrayException(ValidationException):
+
+    def __init__(self, name):
+        super().__init__("Can not index into {} which is not an array".format(name))

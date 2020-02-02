@@ -32,6 +32,7 @@ bool test_func(int a, bool b) {
 }
 */
 
+/*
 int get_max(int a, int b) {
     if (a > b) {
         a += 12 * get_max(a, a*b);
@@ -40,4 +41,16 @@ int get_max(int a, int b) {
         else if (a != b)
             return a - get_max(1,4);
     } else return b;
+}
+*/
+
+int max(int a, int b) {
+    if (a > b)
+        return a;
+    return b;
+}
+
+int test() {
+    int a[4] = {1,2,3,4};
+    return 12*a[1] - a[1 + a[max(a[0], 12)]];
 }
