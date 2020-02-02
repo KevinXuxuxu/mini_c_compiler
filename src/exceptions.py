@@ -88,3 +88,8 @@ class ArrayInitializeException(ValidationException):
     def __init__(self, name, expected, got):
         super().__init__("Expecting {} elements in initializing array {} but got {}".format(
             expected, name, got))
+
+class NotAnArrayException(ValidationException):
+
+    def __init__(self, name):
+        super().__init__("Can not index into {} which is not an array".format(name))

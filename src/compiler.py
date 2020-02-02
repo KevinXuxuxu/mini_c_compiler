@@ -12,7 +12,7 @@ def main():
 
     P = Parser()
     tree = P.parse(tokens)
-    # tree.validate()
+    tree.validate()
     print(tree.to_str())
 
 if __name__ == '__main__':

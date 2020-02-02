@@ -34,7 +34,7 @@ class Context(namedtuple('Context', ['id', 'type', 'parent', 'v_map', 'f_map']))
         while c is not None and name not in c.v_map:
             c = c.parent
         if c is None:
-            return None
+            raise UndefinedVariableException(name)
         return c.v_map[name]
     
     def get_func(self, name):
@@ -42,7 +42,7 @@ class Context(namedtuple('Context', ['id', 'type', 'parent', 'v_map', 'f_map']))
         while c is not None and name not in c.f_map:
             c = c.parent
         if c is None:
-            return None
+            raise UndefinedFunctionException(name)
         return c.f_map[name]
     
     def get_return_target(self):
@@ -146,7 +146,6 @@ class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
                 default.validate(ctx)
                 if default.type != _type:
                     raise TypeMismatchException(_type, default.type)
-            ctx.v_map[name] = _type
         else:
             if default is None:
                 if _len == '*':
@@ -161,12 +160,13 @@ class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
                     self.len = len(default)
                 else:
                     self.validate_len(ctx)
+        ctx.v_map[name] = (_type, _len is not None)
         return default != None
 
 class VarRef(namedtuple('VarRef', ['name']), Typable):
     
     def validate(self, ctx):
-        self.type = ctx.get_var(self.name)
+        self.type, _ = ctx.get_var(self.name)
 
 class Operator(Typable):
     pass
@@ -248,7 +248,14 @@ class FuncCall(namedtuple('FuncCall', ['name', 'params']), Typable):
                 raise TypeMismatchException(v_types[i], expr.type)
 
 class ArrayRef(namedtuple('ArrayRef', ['name', 'index']), Typable):
-    pass
+
+    def validate(self, ctx):
+        self.type, is_array = ctx.get_var(self.name)
+        if not is_array:
+            raise NotAnArrayException(self.name)
+        self.index.validate(ctx)
+        if self.index.type != 'int':
+            raise TypeMismatchException('int', self.index.type)
 
 # class Param(namedtuple('Param', ['name', 'expr']), Tree):
 #     pass
