@@ -37,6 +37,12 @@ class Parser:
         statement = None
         if self.match_tokens(NAME, ASSIGN_OP):
             statement = self.parse_assignment()
+        if self.match_tokens(NAME, O_SQ_BRAC):
+            array_ref = self.parse_array_ref()
+            if self.match_tokens(ASSIGN_OP):
+                statement = self.parse_assignment(array_ref)
+            else:  # should be an expression
+                statement = self.parse_expr([ARRAY_REF(array_ref)])
         elif self.match_tokens(BASE_TYPE, NAME, O_PAREN):
             return self.parse_func_def()
         elif self.match_tokens(BASE_TYPE, NAME):
@@ -53,9 +59,11 @@ class Parser:
         self.consume(SEMICOLON)
         return statement
     
-    def parse_assignment(self):
+    def parse_assignment(self, ref=None):
+        if ref is None:
+            ref = self.parse_var_ref()
         return Assignment(
-            self.parse_var_ref(),
+            ref,
             self.consume(ASSIGN_OP).value,
             self.parse_expr())
     
@@ -116,15 +124,18 @@ class Parser:
                 return name, _type, expr
         return name, _type, None
 
+    def parse_array_init(self):
+        self.consume(O_BRAC)
+        default = [self.parse_expr()]
+        while self.match_tokens(COMMA):
+            self.consume(COMMA)
+            default.append(self.parse_expr())
+        self.consume(C_BRAC)
+        return ArrayInit(len(default), default)
+
     def parse_default(self):
         if self.match_tokens(O_BRAC):
-            self.consume(O_BRAC)
-            default = [self.parse_expr()]
-            while self.match_tokens(COMMA):
-                self.consume(COMMA)
-                default.append(self.parse_expr())
-            self.consume(C_BRAC)
-            return default
+            return self.parse_array_init()
         return self.parse_expr()
 
     def parse_var_def(self):
@@ -135,9 +146,8 @@ class Parser:
             default = self.parse_default()
         return VarDef(name, _type, default).set_len(_len)
 
-    def get_postfix(self):
+    def get_postfix(self, postfix=[]):
         stack = [HASH_OP('#').gen(None)]
-        postfix = []
         prev = stack[0]
         while True:
             if self.match_tokens(NAME) or self.match_tokens(LITERAL):
@@ -219,8 +229,8 @@ class Parser:
                 "Unfinished expression parse\n    stack: {}".format(stack))
         return stack[0]
 
-    def parse_expr(self):
-        return self.build_expr(self.get_postfix())
+    def parse_expr(self, head=None):
+        return self.build_expr(self.get_postfix([] if head is None else [head]))
 
     def parse_func_call(self, name=None):
         if name is None:

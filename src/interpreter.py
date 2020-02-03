@@ -9,8 +9,6 @@ def main():
     # Tokenize
     T = Tokenizer()
     tokens = T.tokenize(code)
-    for t in tokens:
-        print(t)
 
     # Parse
     P = Parser()
@@ -18,7 +16,9 @@ def main():
 
     # Validate
     tree.validate()
-    print(tree.to_str())
+
+    # Interpret
+    print(tree.evaluate())
 
 if __name__ == '__main__':
     main()

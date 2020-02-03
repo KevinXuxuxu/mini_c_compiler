@@ -202,7 +202,7 @@ class BITWISE_LOGIC_OP(BITWISE_OP):
     token_type = 'BITWISE_LOGIC_OP'
 
 class ASSIGN_OP(Token):
-    reg = r'\+=|-=|\*=|/='
+    reg = r'\+=|-=|\*=|/=|%='
     token_type = 'ASSIGN_OP'
 
 class EQ_ASSIGN_OP(ASSIGN_OP):
