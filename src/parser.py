@@ -37,7 +37,7 @@ class Parser:
         statement = None
         if self.match_tokens(NAME, ASSIGN_OP):
             statement = self.parse_assignment()
-        if self.match_tokens(NAME, O_SQ_BRAC):
+        elif self.match_tokens(NAME, O_SQ_BRAC):
             array_ref = self.parse_array_ref()
             if self.match_tokens(ASSIGN_OP):
                 statement = self.parse_assignment(array_ref)

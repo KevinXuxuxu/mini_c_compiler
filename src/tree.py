@@ -509,3 +509,10 @@ class While(namedtuple('While', ['cond', 'body']), Tree):
         if cond.type != 'bool':
             raise TypeMismatchException('bool', cond.type)
         self.body.validate(Context.new(None, ctx))
+
+    def evaluate(self, ctx):
+        new_ctx = Context.new(None, ctx)
+        while self.cond.evaluate(new_ctx):
+            rtn = self.body.evaluate(new_ctx)
+            if isinstance(rtn, ReturnValue):
+                return rtn
