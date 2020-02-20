@@ -2,6 +2,7 @@ from collections import namedtuple
 from tokenizer import *
 from tree import *
 from exceptions import *
+from runtime import *
 
 class Parser:
     
@@ -53,6 +54,8 @@ class Parser:
             return self.parse_while()
         elif self.match_tokens(RETURN):
             statement = self.parse_return()
+        elif self.match_tokens(RUNTIME):
+            statement = self.parse_runtime()
         else:
             statement = self.parse_expr()
         # TODO: add control flows (if, for, while, ...)
@@ -321,3 +324,8 @@ class Parser:
         else:
             body = Block([self.parse_statement()])
         return While(cond, body)
+
+    def parse_runtime(self):
+        # TODO: remove duplicated logic with parse_func_call
+        name = self.consume(RUNTIME).value
+        return Runtime.parse(name, self.parse_params())

@@ -13,9 +13,10 @@
 --------------------/ ,  . \--------._
 """
 
+import utils
+
 from collections import namedtuple
 from random import randint
-from utils import unescape
 from exceptions import *
 
 
@@ -136,9 +137,9 @@ class Tree:
                     if isinstance(v, Tree):
                         s += "{}- {}".format(self.unit * i, v.to_str(i+1))
                     else:
-                        s += "{}- {}\n".format(self.unit * i, unescape(v))
+                        s += "{}- {}\n".format(self.unit * i, utils.unescape(v))
             else:
-                s += "{}{}: {}\n".format(self.unit * i, field, unescape(value))
+                s += "{}{}: {}\n".format(self.unit * i, field, utils.unescape(value))
         return s
     
     def validate(self, ctx):
@@ -222,7 +223,7 @@ class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
     nil = {
         'int': 0,
         'bool': False,
-        'chr': ' ',
+        'char': ' ',
     }
 
     def set_len(self, _len):
@@ -233,8 +234,7 @@ class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
         _len = self.len
         if _len is not None and _len != '*':
             _len.validate(ctx)
-            if _len.type != 'int':
-                raise TypeMismatchException('int', _len.type)
+            utils.check_type('int', _len.type)
             if isinstance(_len, Literal):
                 l = int(_len.value)
                 if self.default != None and l < len(self.default):
@@ -248,8 +248,7 @@ class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
         if _len is None:
             if default != None:
                 default.validate(ctx)
-                if default.type != _type:
-                    raise TypeMismatchException(_type, default.type)
+                utils.check_type(_type, default.type)
         else:
             if default is None:
                 if _len == '*':
@@ -258,8 +257,7 @@ class VarDef(namedtuple('VarDef', ['name', 'type', 'default']), Tree):
             elif isinstance(default, list):
                 for expr in default:
                     expr.validate(ctx)
-                    if expr.type != _type:
-                        raise TypeMismatchException(_type, expr.type)
+                    utils.check_type(_type, expr.type)
                 if _len == '*':
                     self.len = len(default)
                 else:
@@ -293,8 +291,10 @@ class UnaryOp(namedtuple('UnaryOp', ['op', 'child']), Operator):
         '~': ['int']
     }
 
+    need_ref = ['R++', 'L++', 'R--', 'L--']
+
     def check_type(self):
-        if not isinstance(self.child, Reference):
+        if self.op in self.need_ref and not isinstance(self.child, Reference):
             raise ValidationException(
                 "Expecting a reference with {} operator".format(self.op))
         c_type, allowed = self.child.type, self.type_map[self.op]
@@ -357,8 +357,7 @@ class BinaryOp(namedtuple('BinaryOp', ['op', 'right', 'left']), Operator):
         l_type, r_type, allowed = self.left.type, self.right.type, self.type_map[self.op]
         if allowed != '*' and l_type not in allowed:
             raise TypeMismatchException(allowed, l_type)
-        if r_type != l_type:
-            raise TypeMismatchException(l_type, r_type)
+        utils.check_type(l_type, r_type)
         # TODO: is there a more generic way to do this?
         if self.op in self.logic_ops:
             self.type = 'bool'
@@ -391,8 +390,7 @@ class FuncCall(namedtuple('FuncCall', ['name', 'params']), Typable, Expr):
             raise WrongNumberOfArguments(self.name, len(v_types), len(params))
         for i, expr in enumerate(params):
             expr.validate(ctx)
-            if v_types[i] != expr.type:
-                raise TypeMismatchException(v_types[i], expr.type)
+            utils.check_type(v_types[i], expr.type)
 
     def evaluate(self, ctx):
         func = ctx.get_func(self.name)
@@ -417,8 +415,7 @@ class ArrayRef(namedtuple('ArrayRef', ['name', 'index']), Reference):
         if not is_array:
             raise NotAnArrayException(self.name)
         self.index.validate(ctx)
-        if self.index.type != 'int':
-            raise TypeMismatchException('int', self.index.type)
+        utils.check_type('int', self.index.type)
 
     def evaluate(self, ctx):
         i = self.index.evaluate(ctx)
@@ -473,12 +470,10 @@ class Return(namedtuple('Return', ['expr']), Tree):
     def validate(self, ctx):
         target_ctx = ctx.get_return_target()
         if self.expr == None:
-            if target_ctx.type != 'void':
-                raise TypeMismatchException(target_ctx.type, 'void')
+            utils.check_type(target_ctx.type, 'void')
         else:
             self.expr.validate(ctx)
-            if target_ctx.type != self.expr.type:
-                raise TypeMismatchException(target_ctx.type, self.expr.type)
+            utils.check_type(target_ctx.type, self.expr.type)
         target_ctx.returned = True
 
     def evaluate(self, ctx):
@@ -489,8 +484,7 @@ class If(namedtuple('If', ['cond', 'true_body', 'false_body']), Tree):
     def validate(self, ctx):
         cond = self.cond
         cond.validate(ctx)
-        if cond.type != 'bool':
-            raise TypeMismatchException('bool', cond.type)
+        utils.check_type('bool', cond.type)
         self.true_body.validate(Context.new(None, ctx))
         if self.false_body != None:
             self.false_body.validate(Context.new(None, ctx))
@@ -506,8 +500,7 @@ class While(namedtuple('While', ['cond', 'body']), Tree):
     def validate(self, ctx):
         cond = self.cond
         cond.validate(ctx)
-        if cond.type != 'bool':
-            raise TypeMismatchException('bool', cond.type)
+        utils.check_type('bool', cond.type)
         self.body.validate(Context.new(None, ctx))
 
     def evaluate(self, ctx):

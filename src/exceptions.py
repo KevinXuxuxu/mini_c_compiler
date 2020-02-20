@@ -93,3 +93,8 @@ class NotAnArrayException(ValidationException):
 
     def __init__(self, name):
         super().__init__("Can not index into {} which is not an array".format(name))
+
+class UnimplementedRuntimeException(ParseException):
+
+    def __init__(self, name):
+        super().__init__("Runtime function {} is not implemented".format(name))

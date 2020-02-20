@@ -55,6 +55,10 @@ class WHILE(Token):
     reg = r'\bwhile\b'
     token_tyle = 'WHILE'
 
+class RUNTIME(Token):
+    reg = r'\bprintf\b'
+    token_type = 'RUNTIME'
+
 class OP(Token):
 
     # (
@@ -271,6 +275,7 @@ class Tokenizer:
         IF,
         ELSE,
         WHILE,
+        RUNTIME,
         O_PAREN,
         C_PAREN,
         O_BRAC,
