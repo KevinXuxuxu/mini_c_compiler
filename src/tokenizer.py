@@ -55,6 +55,10 @@ class WHILE(Token):
     reg = r'\bwhile\b'
     token_tyle = 'WHILE'
 
+class RUNTIME(Token):
+    reg = r'\bprintf\b'
+    token_type = 'RUNTIME'
+
 class OP(Token):
 
     # (
@@ -202,7 +206,7 @@ class BITWISE_LOGIC_OP(BITWISE_OP):
     token_type = 'BITWISE_LOGIC_OP'
 
 class ASSIGN_OP(Token):
-    reg = r'\+=|-=|\*=|/='
+    reg = r'\+=|-=|\*=|/=|%='
     token_type = 'ASSIGN_OP'
 
 class EQ_ASSIGN_OP(ASSIGN_OP):
@@ -271,6 +275,7 @@ class Tokenizer:
         IF,
         ELSE,
         WHILE,
+        RUNTIME,
         O_PAREN,
         C_PAREN,
         O_BRAC,

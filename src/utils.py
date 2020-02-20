@@ -1,3 +1,5 @@
+from exceptions import TypeMismatchException
+
 cache = {
         '\'':"\\'",
         '\"':'\\"',
@@ -17,3 +19,7 @@ def unescape(x):
     for k, v in cache.items():
         y = y.replace(k, v)
     return "'{}'".format(y)
+
+def check_type(expected, got):
+    if expected != got:
+        raise TypeMismatchException(expected, got)

@@ -8,10 +8,15 @@
   - Trying to follow grammars from [C (programming language)](https://en.wikipedia.org/wiki/C_(programming_language))
 - Parser
   - Turn input tokens into syntax tree
-  - Should be able to do type check & optimizaitons
   - Need context free mechanism to finish this job
+- Validation
+  - Do static analysis on parsed syntax tree
+  - Should be able to do type check & optimizaitons
 - Code Generator (Not there yet)
   - Turn input tree into executable code (literally any kind of code, preferably assembly)
+- Interpreter:
+  - Traverse syntax tree and evaluate the execution, like a C language "VM"
+  - Easier to implement than code generator
 
 ## Usage
 Run compiler against target code file:
@@ -52,6 +57,31 @@ Root:
             ...
 ```
 Compiler errors will be raised as exceptions.
+
+Run interpreter against target code file:
+- target code:
+```
+int newton(int x, int iter) {
+    int i = 0;
+    int z = 1;
+    while(i < iter) {
+        z -= (z*z - x) / (2*z);
+        i++;
+    }
+    return z;
+}
+
+int main() {
+    int input = 200000000;
+    int iter = 30;
+    return newton(input, iter);
+}
+```
+Interpretation: 
+```
+$ python3 src/interpreter.py test_files/newton_sqrt.c
+14143
+```
 
 ## Reference
 - [A Compiler From Scratch](https://www.destroyallsoftware.com/screencasts/catalog/a-compiler-from-scratch)
