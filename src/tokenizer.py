@@ -166,7 +166,7 @@ class CREMENT_OP(OP):
     #         (which seems to be nothing but ++ and -- themselves)
     #     ++, --
     #     C_PAREN
-    #         (only case that it might work is redundent parentheses over variable,
+    #         (only case that it might work is redundant parentheses over variable,
     #         which will be ignored for now)
 
     def gen(self, prev):

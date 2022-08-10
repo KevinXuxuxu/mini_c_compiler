@@ -16,8 +16,9 @@ int main() {
     }
     i = 0;
     while(i < n) {
-        printf("%d\n", a[i]);
+        printf("%d, ", a[i]);
         i++;
     }
+    printf("\n");
     return 0;
 }
